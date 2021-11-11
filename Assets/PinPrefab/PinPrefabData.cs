@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Scripts.Tools.PinPrefab
+namespace PinPrefab
 {
   [CreateAssetMenu(menuName = "Project/Special/Pin Data", fileName = "PinPrefabData")]
   public class PinPrefabData : ScriptableObject

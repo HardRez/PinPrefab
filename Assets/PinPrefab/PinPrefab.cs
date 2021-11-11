@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Scripts.Tools.PinPrefab
+namespace PinPrefab
 {
   public enum PinTab
   {
@@ -16,7 +16,7 @@ namespace Scripts.Tools.PinPrefab
 
   public static class Extensions
   {
-    public static List<string> GetClone(this List<string> source)
+    public static List<string> GetClone(this IEnumerable<string> source)
     {
       return source.Select(item => (string) item.Clone())
         .ToList();
@@ -32,11 +32,8 @@ namespace Scripts.Tools.PinPrefab
 
     private static PinPrefabData _data;
 
-    private static readonly List<string> newPrefabList = new List<string>();
+    private static readonly List<string> NewPrefabList = new List<string>();
 
-    /*
- * TODO: Yeni eklenen itemlera new badge'i eklenecek
- */
     private static bool _onFocus;
 
     private readonly string[] _tabList = {"Pinned List", "History"};
@@ -45,10 +42,10 @@ namespace Scripts.Tools.PinPrefab
 
     private Vector2 _scrollPosition = Vector2.zero;
 
-    private static List<string> PrefabList => Data.PrefabList;
-    private static List<string> HistoryList => Data.HistoryList;
+    private static List<string> prefabList => data.PrefabList;
+    private static List<string> historyList => data.HistoryList;
 
-    private static PinPrefabData Data
+    private static PinPrefabData data
     {
       get
       {
@@ -124,12 +121,10 @@ namespace Scripts.Tools.PinPrefab
     private void OpenPins()
     {
       // ReSharper disable once ForCanBeConvertedToForeach
-      if(PrefabList.Count <= 0) return;
-      
-      for (var index = 0; index < PrefabList.Count; index++)
-      {
-        var path = PrefabList[index];
+      if(prefabList.Count <= 0) return;
 
+      foreach (var path in prefabList)
+      {
         GUILayout.BeginHorizontal();
 
         GUILayout.Label(PrefabName(path), GUILayout.Width(position.width / 100 * 60));
@@ -149,9 +144,9 @@ namespace Scripts.Tools.PinPrefab
     private void OpenHistory()
     {
       // ReSharper disable once ForCanBeConvertedToForeach
-      for (var index = 0; index < HistoryList.Count; index++)
+      for (var index = 0; index < historyList.Count; index++)
       {
-        var path = HistoryList[index];
+        var path = historyList[index];
         GUILayout.BeginHorizontal();
         GUILayout.Label(PrefabName(path), GUILayout.Width(position.width / 100 * 70));
         if (GUILayout.Button(EditorGUIUtility.IconContent(RestoreIcon), GUILayout.Width(position.width / 100 * 10)))
@@ -184,7 +179,7 @@ namespace Scripts.Tools.PinPrefab
     {
       try
       {
-        EditorUtility.SetDirty(Data);
+        EditorUtility.SetDirty(data);
       }
       catch (Exception e)
       {
@@ -197,58 +192,54 @@ namespace Scripts.Tools.PinPrefab
 
     private static void AddPin(string path)
     {
-      if (PrefabList.Contains(path)) return;
-
-      if (!_onFocus) newPrefabList.Add(path);
-
-      PrefabList.Add(path);
-
+      if (prefabList.Contains(path)) return;
+      
+      if (!_onFocus) NewPrefabList.Add(path);
+      prefabList.Add(path);
       Save();
     }
 
     private static void RemovePin(string path)
     {
-      if (!PrefabList.Contains(path)) return;
+      if (!prefabList.Contains(path)) return;
       AddHistory(path);
-      PrefabList.Remove(path);
+      prefabList.Remove(path);
     }
 
     private static void ClearPins()
     {
-      var list = PrefabList.GetClone();
-      for (var index = 0; index < list.Count; index++)
+      var list = prefabList.GetClone();
+      foreach (var path in list)
       {
-        var path = list[index];
         RemovePin(path);
       }
     }
 
     private static void AddHistory(string path)
     {
-      if (HistoryList.Contains(path)) return;
+      if (historyList.Contains(path)) return;
 
-      HistoryList.Add(path);
+      historyList.Add(path);
     }
 
     private static void RemoveHistory(string path)
     {
-      if (!HistoryList.Contains(path)) return;
-      HistoryList.Remove(path);
+      if (!historyList.Contains(path)) return;
+      historyList.Remove(path);
     }
 
     private static void Restore(string path)
     {
-      if (!HistoryList.Contains(path)) return;
+      if (!historyList.Contains(path)) return;
       RemoveHistory(path);
       AddPin(path);
     }
 
     private static void ClearHistory()
     {
-      var list = HistoryList.GetClone();
-      for (var index = 0; index < list.Count; index++)
+      var list = historyList.GetClone();
+      foreach (var path in list)
       {
-        var path = list[index];
         RemoveHistory(path);
       }
     }
